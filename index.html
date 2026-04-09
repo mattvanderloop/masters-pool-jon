@@ -1,0 +1,1471 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>2026 Masters Fantasy Golf Tracker</title>
+  
+  <style>
+    :root {
+      --masters-green: #0d4f3a;
+      --masters-green-deep: #08392b;
+      --masters-green-dark: #062f24;
+      --masters-green-soft: #124b38;
+      --masters-gold: #d4af37;
+      --masters-gold-bright: #e3bf4d;
+      --masters-cream: #efe7db;
+      --bg: #0a2f24;
+      --panel: rgba(9, 43, 33, 0.92);
+      --panel-soft: rgba(14, 57, 43, 0.88);
+      --panel-glass: rgba(255, 255, 255, 0.05);
+      --panel-line: rgba(227, 191, 77, 0.18);
+      --text: #f2ebdf;
+      --muted: rgba(242, 235, 223, 0.68);
+      --line: rgba(255, 255, 255, 0.08);
+      --under: #7ee3a6;
+      --even: #efe7db;
+      --over: #ff9f91;
+      --shadow: 0 24px 60px rgba(0, 0, 0, 0.32);
+      --radius: 28px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top right, rgba(227,191,77,.08), transparent 22%),
+        radial-gradient(circle at left top, rgba(255,255,255,.04), transparent 24%),
+        linear-gradient(180deg, #082e23 0%, #0a3327 52%, #07281f 100%);
+      min-height: 100vh;
+    }
+
+    .page {
+      width: min(1360px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 22px 0 46px;
+    }
+
+    .hero {
+      margin: 22px auto 0;
+      width: min(1360px, calc(100% - 32px));
+      position: relative;
+      overflow: hidden;
+      border-radius: 34px;
+      border: 1px solid rgba(227,191,77,.16);
+      box-shadow: 0 28px 70px rgba(0, 0, 0, 0.38);
+      background:
+        linear-gradient(135deg, rgba(255,255,255,.03), rgba(255,255,255,0)),
+        repeating-linear-gradient(135deg, rgba(255,255,255,.035) 0 34px, rgba(255,255,255,0) 34px 68px),
+        linear-gradient(135deg, #0b4634 0%, #0a3d2e 42%, #072f24 100%);
+    }
+
+    .hero::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 88% 20%, rgba(212,175,55,.08), transparent 20%);
+      pointer-events: none;
+    }
+
+    .hero-inner {
+      min-height: 278px;
+      padding: 34px 34px 30px;
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) auto;
+      gap: 24px;
+      align-items: end;
+      position: relative;
+      z-index: 1;
+    }
+
+    .title-wrap {
+      display: block;
+      min-width: 0;
+    }
+
+    .logo-pin { display: none; }
+
+    .hero-kicker {
+      margin: 0 0 18px;
+      color: #76d09e;
+      font-size: 0.95rem;
+      letter-spacing: .34em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 0;
+      color: var(--masters-cream);
+      font-family: Georgia, "Times New Roman", "Baskerville", serif;
+      font-size: clamp(3rem, 6vw, 5.6rem);
+      line-height: 0.9;
+      letter-spacing: -0.055em;
+      font-weight: 700;
+      text-shadow: 0 2px 0 rgba(0,0,0,.06);
+      max-width: 740px;
+    }
+
+    h1 .gold {
+      color: var(--masters-gold-bright);
+    }
+
+    .subtitle {
+      margin: 18px 0 0;
+      max-width: 720px;
+      color: rgba(242,235,223,.82);
+      font-size: 1rem;
+      line-height: 1.55;
+    }
+
+    .hero-year {
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: clamp(4.8rem, 10vw, 7.8rem);
+      line-height: .9;
+      letter-spacing: -0.05em;
+      color: rgba(212, 175, 55, 0.34);
+      align-self: center;
+      justify-self: end;
+      padding-right: 8px;
+      user-select: none;
+    }
+
+    .status-bar {
+      margin-top: 24px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-start;
+      gap: 10px;
+    }
+
+    .pill, .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      border-radius: 999px;
+      padding: 10px 14px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.08);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
+      font-size: 0.88rem;
+      color: var(--masters-cream);
+      white-space: nowrap;
+      backdrop-filter: blur(6px);
+    }
+
+    .chip {
+      font-size: 0.8rem;
+      padding: 8px 12px;
+    }
+
+    .pulse {
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+      background: var(--under);
+      box-shadow: 0 0 0 0 rgba(126,227,166,.5);
+      animation: pulse 1.8s infinite;
+    }
+    .pulse.offline { background: var(--over); box-shadow: 0 0 0 0 rgba(255,159,145,.45); }
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(126,227,166,.45); }
+      70% { box-shadow: 0 0 0 10px rgba(126,227,166,0); }
+      100% { box-shadow: 0 0 0 0 rgba(126,227,166,0); }
+    }
+
+    .section {
+      margin-top: 22px;
+      background:
+        linear-gradient(180deg, rgba(16,63,48,.88), rgba(8,43,33,.96)),
+        repeating-linear-gradient(135deg, rgba(255,255,255,.02) 0 34px, rgba(255,255,255,0) 34px 68px);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      border: 1px solid var(--panel-line);
+      overflow: hidden;
+      backdrop-filter: blur(12px);
+    }
+
+    .section-head {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 14px;
+      padding: 22px 24px;
+      border-bottom: 1px solid rgba(255,255,255,.08);
+      background: linear-gradient(180deg, rgba(255,255,255,.035), rgba(255,255,255,.01));
+    }
+
+    .section-title {
+      margin: 0;
+      color: var(--masters-cream);
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 1.7rem;
+      letter-spacing: -0.04em;
+      line-height: 1;
+    }
+
+    .section-kicker {
+      margin: 8px 0 0;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .chips {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .spotlight-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+      padding: 20px 24px 0;
+    }
+
+    .spotlight-card {
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 22px;
+      padding: 18px;
+      background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.03);
+    }
+
+    .spotlight-card h3 {
+      margin: 0 0 10px;
+      color: rgba(242,235,223,.7);
+      font-size: 0.8rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: .18em;
+    }
+
+    .spotlight-value {
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 2.25rem;
+      line-height: 1;
+      letter-spacing: -0.05em;
+      color: var(--masters-cream);
+    }
+
+    .spotlight-sub {
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    .callout {
+      margin: 18px 24px 0;
+      padding: 16px 18px;
+      border-radius: 20px;
+      background: linear-gradient(90deg, rgba(227,191,77,.12), rgba(255,255,255,.04));
+      border: 1px solid rgba(227,191,77,.16);
+      color: var(--masters-cream);
+      font-size: 0.96rem;
+    }
+
+    .legend {
+      padding: 0 24px 24px;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .team-list {
+      padding: 18px;
+      display: grid;
+      gap: 14px;
+    }
+
+    .team-card {
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 24px;
+      background: linear-gradient(180deg, rgba(255,255,255,.055), rgba(255,255,255,.025));
+      overflow: hidden;
+      transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.03);
+    }
+
+    .team-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 14px 28px rgba(0,0,0,.16);
+      border-color: rgba(227,191,77,.24);
+    }
+
+    .team-summary {
+      list-style: none;
+      cursor: pointer;
+      padding: 18px 20px;
+      display: grid;
+      grid-template-columns: minmax(0, 1.25fr) minmax(120px, 180px) minmax(170px, 1fr) auto;
+      gap: 16px;
+      align-items: center;
+    }
+
+    .team-summary::-webkit-details-marker { display: none; }
+
+    .team-meta {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      min-width: 0;
+    }
+
+    .rank-badge {
+      width: 58px;
+      height: 58px;
+      border-radius: 18px;
+      display: grid;
+      place-items: center;
+      font-size: 1.7rem;
+      background: linear-gradient(135deg, rgba(227,191,77,.14), rgba(255,255,255,.06));
+      border: 1px solid rgba(227,191,77,.22);
+      flex: 0 0 auto;
+    }
+
+    .team-name {
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 1.45rem;
+      font-weight: 700;
+      line-height: 1;
+      letter-spacing: -0.03em;
+      color: var(--masters-cream);
+    }
+
+    .team-sub {
+      color: var(--muted);
+      font-size: 0.9rem;
+      margin-top: 6px;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .movement {
+      font-size: .88rem;
+      color: var(--muted);
+      font-weight: 700;
+    }
+    .movement.up { color: var(--under); }
+    .movement.down { color: var(--over); }
+
+    .team-score {
+      text-align: center;
+    }
+
+    .team-score-label {
+      font-size: 0.72rem;
+      color: rgba(242,235,223,.58);
+      text-transform: uppercase;
+      letter-spacing: .18em;
+      font-weight: 800;
+    }
+
+    .team-score-value {
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 2.4rem;
+      font-weight: 700;
+      letter-spacing: -0.06em;
+      margin-top: 6px;
+      color: var(--masters-cream);
+    }
+
+    .counting-wrap {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      justify-content: flex-start;
+    }
+
+    .score-chip {
+      border-radius: 999px;
+      padding: 8px 10px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      border: 1px solid rgba(255,255,255,.1);
+      background: rgba(255,255,255,.05);
+      color: var(--masters-cream);
+    }
+
+    .score-chip.counting { border-color: rgba(126,227,166,.26); background: rgba(126,227,166,.08); }
+    .score-chip.fallback { border-color: rgba(227,191,77,.32); background: rgba(227,191,77,.12); color: #f8e39f; }
+    .score-chip.bench { opacity: .82; }
+
+    .team-chevron {
+      font-size: 1.35rem;
+      color: rgba(242,235,223,.7);
+      transition: transform .18s ease;
+    }
+    details[open] .team-chevron { transform: rotate(180deg); }
+
+    .team-detail {
+      padding: 0 20px 20px;
+      border-top: 1px solid rgba(255,255,255,.08);
+      background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(0,0,0,.02));
+    }
+
+    .roster-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      padding-top: 16px;
+    }
+
+    .player-card {
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 20px;
+      padding: 14px;
+      background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+      color: var(--masters-cream);
+    }
+
+    .player-card.counting {
+      box-shadow: inset 0 0 0 1px rgba(126,227,166,.18);
+      border-color: rgba(126,227,166,.22);
+      background: linear-gradient(180deg, rgba(126,227,166,.10), rgba(255,255,255,.03));
+    }
+
+    .player-card.fallback {
+      box-shadow: inset 0 0 0 1px rgba(227,191,77,.18);
+      border-color: rgba(227,191,77,.22);
+      background: linear-gradient(180deg, rgba(227,191,77,.12), rgba(255,255,255,.03));
+    }
+
+    .row {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .player-name {
+      font-weight: 800;
+      letter-spacing: -0.01em;
+    }
+
+    .player-role {
+      margin-top: 8px;
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .tag {
+      border-radius: 999px;
+      padding: 5px 8px;
+      font-size: 0.72rem;
+      font-weight: 800;
+      border: 1px solid rgba(255,255,255,.1);
+      background: rgba(255,255,255,.05);
+      color: var(--muted);
+    }
+
+    .tag.counting { color: #c9f1d8; border-color: rgba(126,227,166,.26); background: rgba(126,227,166,.08); }
+    .tag.fallback { color: #f4de91; border-color: rgba(227,191,77,.3); background: rgba(227,191,77,.12); }
+    .tag.cut { color: #ffb3aa; }
+
+    .muted { color: var(--muted); }
+    .small { font-size: 0.88rem; }
+    .tiny { font-size: 0.78rem; }
+
+    .leaderboard-wrap {
+      padding: 0 20px 20px;
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      min-width: 900px;
+      background: rgba(255,255,255,.03);
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 22px;
+      overflow: hidden;
+    }
+
+    th, td {
+      text-align: left;
+      padding: 14px 12px;
+      border-bottom: 1px solid rgba(255,255,255,.07);
+      vertical-align: middle;
+      color: var(--masters-cream);
+    }
+
+    th {
+      font-size: 0.76rem;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+      color: rgba(242,235,223,.62);
+      background: rgba(255,255,255,.04);
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      backdrop-filter: blur(4px);
+    }
+
+    tbody tr {
+      transition: background .16s ease;
+    }
+
+    tbody tr:nth-child(even) { background: rgba(255,255,255,.015); }
+    tbody tr:hover { background: rgba(227,191,77,.06); }
+
+    .pos-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      font-weight: 800;
+    }
+
+    .team-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(227,191,77,.1);
+      border: 1px solid rgba(227,191,77,.18);
+      font-size: .76rem;
+      font-weight: 800;
+      color: #f4de91;
+      white-space: nowrap;
+    }
+
+    .footer {
+      margin-top: 18px;
+      padding: 20px 22px;
+      color: rgba(242,235,223,.62);
+      text-align: center;
+      font-size: 0.92rem;
+    }
+
+    .under { color: var(--under); }
+    .over { color: var(--over); }
+    .even { color: var(--even); }
+
+    .empty-state {
+      padding: 28px 22px 32px;
+      color: var(--muted);
+    }
+
+    .leaderboard-section {
+      background:
+        linear-gradient(180deg, rgba(15,58,44,.92), rgba(7,37,28,.96)),
+        repeating-linear-gradient(135deg, rgba(255,255,255,.02) 0 34px, rgba(255,255,255,0) 34px 68px);
+    }
+
+    @media (max-width: 980px) {
+      .hero-inner {
+        min-height: 240px;
+        grid-template-columns: 1fr;
+        align-items: end;
+      }
+
+      .hero-year {
+        justify-self: start;
+        padding-right: 0;
+        margin-top: -4px;
+      }
+
+      .team-summary {
+        grid-template-columns: 1fr;
+      }
+
+      .team-score { text-align: left; }
+
+      .spotlight-grid,
+      .roster-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 720px) {
+      .page, .hero {
+        width: min(100%, calc(100% - 20px));
+      }
+
+      .hero {
+        border-radius: 26px;
+      }
+
+      .hero-inner {
+        min-height: 0;
+        padding: 26px 20px 22px;
+      }
+
+      .hero-kicker {
+        font-size: 0.78rem;
+        letter-spacing: .24em;
+      }
+
+      h1 {
+        font-size: clamp(2.5rem, 13vw, 4.2rem);
+      }
+
+      .subtitle {
+        font-size: 0.94rem;
+      }
+
+      .section-head,
+      .spotlight-grid,
+      .team-list,
+      .leaderboard-wrap,
+      .legend {
+        padding-left: 16px;
+        padding-right: 16px;
+      }
+
+      .section-head { padding-top: 18px; padding-bottom: 18px; }
+
+      .callout {
+        margin-left: 16px;
+        margin-right: 16px;
+      }
+
+      .team-summary,
+      .team-detail {
+        padding-left: 16px;
+        padding-right: 16px;
+      }
+
+      table { min-width: 760px; }
+    }
+  </style>
+
+</head>
+<body>
+  
+  <header class="hero">
+    <div class="hero-inner">
+      <div class="title-wrap">
+        <p class="hero-kicker">AUGUSTA NATIONAL · APRIL 9–13</p>
+        <h1>Masters <span class="gold">Fantasy</span><br />Golf Tracker</h1>
+        <p class="subtitle">A sleek, modern Masters-inspired board for friend-group chirping, leaderboard drama, and live scoring all tournament long.</p>
+        <div class="status-bar">
+          <div class="pill"><span id="livePulse" class="pulse"></span><span id="liveStatus">Loading live data…</span></div>
+          <div class="pill">🕒 <strong id="lastUpdated">Waiting for first fetch</strong></div>
+          <div class="pill">🔁 Refresh <strong id="refreshReadout">60s</strong></div>
+        </div>
+      </div>
+      <div class="hero-year">2026</div>
+    </div>
+  </header>
+
+
+  <main class="page">
+    <section class="section" id="summarySection">
+      <div class="section-head">
+        <div>
+          <h2 class="section-title">Fantasy race at a glance</h2>
+          <p class="section-kicker">Top 4 made-cut scores count. Missing made-cut spots use the worst made-cut score in the field.</p>
+        </div>
+        <div class="chips" id="topMetaChips"></div>
+      </div>
+      <div class="spotlight-grid" id="spotlightGrid"></div>
+      <div class="callout" id="battleCallout">Sizing up the leaderboard…</div>
+      <div class="legend">
+        <span class="chip">✅ Counting score</span>
+        <span class="chip">🟡 Field fallback</span>
+        <span class="chip">🪑 Bench</span>
+        <span class="chip">✂️ CUT</span>
+        <span class="chip">🔥 Hot golfer</span>
+      </div>
+    </section>
+
+    <section class="section leaderboard-section">
+      <div class="section-head leaderboard-head">
+        <div>
+          <h2 class="section-title">Team leaderboard</h2>
+          <p class="section-kicker">Tap a team to see all 6 golfers, counting scores, and fallback details.</p>
+        </div>
+        <div class="chips" id="teamChips"></div>
+      </div>
+      <div class="team-list" id="teamList"></div>
+    </section>
+
+    <section class="section leaderboard-section">
+      <div class="section-head leaderboard-head">
+        <div>
+          <h2 class="section-title">Full player leaderboard</h2>
+          <p class="section-kicker">Everyone in the field, with fantasy team tags where applicable.</p>
+        </div>
+        <div class="chips" id="fieldChips"></div>
+      </div>
+      <div class="leaderboard-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Pos</th>
+              <th>Player</th>
+              <th>Score</th>
+              <th>Status</th>
+              <th>R1</th>
+              <th>R2</th>
+              <th>R3</th>
+              <th>R4</th>
+              <th>Fantasy Team</th>
+            </tr>
+          </thead>
+          <tbody id="fieldTableBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <footer class="footer">
+      Built for Masters week chaos, miracle birdies, and the guy who starts chirping on Thursday morning. 🌺
+    </footer>
+  </main>
+
+  <script>
+    // =========================
+    // Easy config section
+    // =========================
+
+    // Change the refresh interval here (milliseconds).
+    const REFRESH_INTERVAL_MS = 60 * 1000;
+
+    // Change the API endpoint here.
+    // This default is intentionally editable because ESPN's public endpoints can change.
+    const ESPN_ENDPOINT = 'https://site.api.espn.com/apis/site/v2/sports/golf/pga/scoreboard';
+
+    // If you need a CORS proxy later, put it here. Example: 'https://your-proxy.example.com/'
+    const CORS_PROXY = '';
+
+    // Change teams here.
+    const fantasyTeams = {
+      "Jon": [
+        "Scottie Scheffler",
+        "Robert MacIntyre",
+        "Si Woo Kim",
+        "Shane Lowry",
+        "Maverick McNealy",
+        "Rasmus Hojgaard"
+      ],
+      "Kid Ron": [
+        "Jon Rahm",
+        "Min Woo Lee",
+        "Chris Gotterup",
+        "Jake Knapp",
+        "Kurt Kitayama",
+        "Harris English"
+      ],
+      "Mulry": [
+        "Bryson DeChambeau",
+        "Patrick Reed",
+        "Akshay Bhatia",
+        "Tyrrell Hatton",
+        "Corey Conners",
+        "Max Homa"
+      ],
+      "Gold": [
+        "Rory McIlroy",
+        "Jordan Spieth",
+        "Justin Thomas",
+        "J.J. Spaun",
+        "Sepp Straka",
+        "Keegan Bradley"
+      ],
+      "Hip": [
+        "Xander Schauffele",
+        "Collin Morikawa",
+        "Sam Burns",
+        "Jacob Bridgeman",
+        "Cameron Smith",
+        "Harry Hall"
+      ],
+      "Matt": [
+        "Ludvig Aberg",
+        "Justin Rose",
+        "Viktor Hovland",
+        "Russell Henley",
+        "Jason Day",
+        "Dustin Johnson"
+      ],
+      "Mikey": [
+        "Cameron Young",
+        "Tommy Fleetwood",
+        "Brooks Koepka",
+        "Nicolai Hojgaard",
+        "SungJae Im",
+        "Gary Woodland"
+      ],
+      "Wolfy": [
+        "Matt Fitzpatrick",
+        "Hideki Matsuyama",
+        "Adam Scott",
+        "Patrick Cantlay",
+        "Ben Griffin",
+        "Daniel Berger"
+      ]
+    };
+
+    // Add or edit aliases here when ESPN names differ from your fantasy list.
+    const playerAliases = {
+      'rory mcilroy': 'rory mcilroy',
+      'rory mcilroy': 'rory mcilroy',
+      'ludvig aberg': 'ludvig aberg',
+      'ludvig åberg': 'ludvig aberg',
+      'jj spaun': 'jj spaun',
+      'j j spaun': 'jj spaun',
+      'j.j. spaun': 'jj spaun',
+      'sungjae im': 'sungjae im',
+      'sungjae im ': 'sungjae im',
+      'sungjaeim': 'sungjae im',
+      'sungjae im': 'sungjae im',
+      'robert macintyre': 'robert macintyre',
+      'robert mac intyre': 'robert macintyre',
+      'tyrrell hatton': 'tyrrell hatton',
+      'nicolai hojgaard': 'nicolai hojgaard',
+      'rasmus hojgaard': 'rasmus hojgaard'
+    };
+
+    // Optional event name filter. The app will try to identify The Masters first, but can still render rosters before live scoring fully starts.
+    const EVENT_NAME_MATCHERS = ['masters', 'masters tournament', 'the masters'];
+
+    const teamOrder = Object.keys(fantasyTeams);
+    const teamByPlayer = buildTeamByPlayerIndex(fantasyTeams);
+    const expandedTeams = new Set();
+
+    let lastSnapshot = null;
+    let lastPositions = {};
+
+    const refs = {
+      livePulse: document.getElementById('livePulse'),
+      liveStatus: document.getElementById('liveStatus'),
+      lastUpdated: document.getElementById('lastUpdated'),
+      refreshReadout: document.getElementById('refreshReadout'),
+      topMetaChips: document.getElementById('topMetaChips'),
+      spotlightGrid: document.getElementById('spotlightGrid'),
+      battleCallout: document.getElementById('battleCallout'),
+      teamChips: document.getElementById('teamChips'),
+      fieldChips: document.getElementById('fieldChips'),
+      teamList: document.getElementById('teamList'),
+      fieldTableBody: document.getElementById('fieldTableBody')
+    };
+
+    refs.refreshReadout.textContent = `${Math.round(REFRESH_INTERVAL_MS / 1000)}s`;
+
+    function normalizeName(name) {
+      const plain = String(name || '')
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[.'’]/g, '')
+        .replace(/\s+/g, ' ')
+        .trim()
+        .toLowerCase();
+      return playerAliases[plain] || plain;
+    }
+
+    function buildTeamByPlayerIndex(teams) {
+      const map = new Map();
+      Object.entries(teams).forEach(([teamName, players]) => {
+        players.forEach((playerName) => {
+          map.set(normalizeName(playerName), teamName);
+        });
+      });
+      return map;
+    }
+
+    function scoreClass(value) {
+      if (typeof value !== 'number' || Number.isNaN(value)) return 'even';
+      if (value < 0) return 'under';
+      if (value > 0) return 'over';
+      return 'even';
+    }
+
+    function formatScore(value, fallback = '—') {
+      if (typeof value !== 'number' || Number.isNaN(value)) return fallback;
+      if (value === 0) return 'E';
+      return value > 0 ? `+${value}` : `${value}`;
+    }
+
+    function safeArray(value) {
+      return Array.isArray(value) ? value : [];
+    }
+
+    function firstDefined(...values) {
+      return values.find((value) => value !== undefined && value !== null);
+    }
+
+    function toNumberMaybe(value) {
+      if (typeof value === 'number' && Number.isFinite(value)) return value;
+      if (typeof value === 'string') {
+        const trimmed = value.trim();
+        if (!trimmed) return null;
+        if (/^e$/i.test(trimmed)) return 0;
+        const num = Number(trimmed.replace(/^\+/, ''));
+        return Number.isFinite(num) ? num : null;
+      }
+      return null;
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function buildUrl() {
+      return `${CORS_PROXY || ''}${ESPN_ENDPOINT}`;
+    }
+
+    async function fetchScoreboard() {
+      const response = await fetch(buildUrl(), { cache: 'no-store' });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      return response.json();
+    }
+
+    function getEventCandidates(scoreboard) {
+      const events = safeArray(scoreboard?.events);
+      return events;
+    }
+
+    function pickMastersEvent(events) {
+      if (!events.length) return null;
+      const exact = events.find((event) => {
+        const text = `${event?.name || ''} ${event?.shortName || ''}`.toLowerCase();
+        return EVENT_NAME_MATCHERS.some((matcher) => text.includes(matcher));
+      });
+      return exact || events[0];
+    }
+
+    function parseRoundScores(athlete) {
+      const source = safeArray(
+        athlete?.statistics || athlete?.stats || athlete?.linescores || athlete?.scorecards || athlete?.rounds
+      );
+
+      const roundMap = { 1: '—', 2: '—', 3: '—', 4: '—' };
+      source.forEach((item, index) => {
+        const round = firstDefined(item?.period, item?.round, item?.displayOrder, index + 1);
+        const val = firstDefined(item?.displayValue, item?.value, item?.score, item?.total);
+        if (round >= 1 && round <= 4 && val !== undefined && val !== null && val !== '') {
+          roundMap[round] = String(val);
+        }
+      });
+      return roundMap;
+    }
+
+    function parseStatusText(status) {
+      const raw = String(
+        firstDefined(
+          status?.displayClock,
+          status?.type?.shortDetail,
+          status?.type?.detail,
+          status?.type?.description,
+          status?.shortDetail,
+          status?.detail,
+          status?.description,
+          status?.state
+        ) || ''
+      ).trim();
+      return raw;
+    }
+
+    function detectPlayerState(athlete, eventStatus) {
+      const rawStatus = `${parseStatusText(athlete?.status)} ${parseStatusText(eventStatus)} ${athlete?.displayStatus || ''}`.toLowerCase();
+      const pos = String(firstDefined(athlete?.position?.displayValue, athlete?.place, athlete?.position, '')).toLowerCase();
+      const scoreText = String(firstDefined(athlete?.score?.displayValue, athlete?.displayScore, athlete?.scoreToPar, athlete?.toPar, '')).toLowerCase();
+
+      if (rawStatus.includes('withdraw') || rawStatus.includes('wd')) return 'WD';
+      if (rawStatus.includes('did not start') || rawStatus.includes('dns')) return 'DNS';
+      if (rawStatus.includes('cut') || pos === 'cut' || scoreText === 'cut') return 'CUT';
+      if (rawStatus.includes('final') || rawStatus.includes('finished') || rawStatus === 'f') return 'FINAL';
+      if (rawStatus.includes('scheduled') || rawStatus.includes('not started') || rawStatus.includes('yet to tee off') || rawStatus.includes('tee off') || rawStatus.includes('start')) return 'NOT_STARTED';
+      if (rawStatus.includes('progress') || rawStatus.includes('thru') || rawStatus.match(/\bhole\b/) || rawStatus.match(/\b[1-9][0-8]?\b/)) return 'ACTIVE';
+      if (scoreText && !['', 'cut'].includes(scoreText)) return 'ACTIVE';
+      return 'NOT_STARTED';
+    }
+
+    function parsePlayerScore(athlete) {
+      const direct = [
+        athlete?.score,
+        athlete?.scoreToPar,
+        athlete?.toPar,
+        athlete?.totalScore,
+        athlete?.statistics?.find?.((s) => /to par/i.test(s?.name || ''))?.value,
+        athlete?.statistics?.find?.((s) => /score/i.test(s?.name || ''))?.value,
+        athlete?.displayScore,
+        athlete?.score?.displayValue
+      ];
+
+      for (const candidate of direct) {
+        const value = toNumberMaybe(typeof candidate === 'object' ? candidate?.value ?? candidate?.displayValue : candidate);
+        if (value !== null) return value;
+      }
+      return null;
+    }
+
+    function parseThru(athlete, eventStatus) {
+      const text = parseStatusText(athlete?.status) || parseStatusText(eventStatus) || '';
+      const lower = text.toLowerCase();
+      if (!text) return 'Yet to Tee Off';
+      if (lower.includes('scheduled') || lower.includes('not started')) return text || 'Yet to Tee Off';
+      if (lower.includes('final') || lower === 'f') return 'F';
+      return text;
+    }
+
+    function parsePosition(athlete, index) {
+      const raw = String(firstDefined(athlete?.position?.displayValue, athlete?.position?.abbreviation, athlete?.position, athlete?.rank, '')).trim();
+      if (raw) return raw;
+      return String(index + 1);
+    }
+
+    function extractAthletesFromEvent(event) {
+      const competitions = safeArray(event?.competitions);
+      const athletes = [];
+
+      competitions.forEach((competition) => {
+        const rawCompetitors = safeArray(competition?.competitors);
+        rawCompetitors.forEach((competitor, index) => {
+          const athlete = competitor?.athlete || competitor?.player || competitor;
+          const name = firstDefined(
+            athlete?.displayName,
+            athlete?.shortName,
+            competitor?.displayName,
+            competitor?.athlete?.displayName,
+            competitor?.name
+          );
+
+          if (!name) return;
+
+          const state = detectPlayerState(competitor, competition?.status || event?.status);
+          const scoreValue = parsePlayerScore(competitor) ?? parsePlayerScore(athlete);
+          const rounds = parseRoundScores(competitor);
+          athletes.push({
+            id: firstDefined(athlete?.id, competitor?.id, normalizeName(name)),
+            name,
+            normalizedName: normalizeName(name),
+            position: parsePosition(competitor, index),
+            scoreValue,
+            scoreDisplay: formatScore(scoreValue, state === 'NOT_STARTED' ? 'E' : state),
+            thru: parseThru(competitor, competition?.status || event?.status),
+            statusCode: state,
+            eventStatus: parseStatusText(competition?.status || event?.status),
+            rounds,
+            raw: competitor
+          });
+        });
+      });
+
+      // Some feeds may not include competitors under competitions. This fallback tries a flatter path.
+      if (!athletes.length) {
+        safeArray(event?.competitors).forEach((competitor, index) => {
+          const athlete = competitor?.athlete || competitor;
+          const name = athlete?.displayName || athlete?.name;
+          if (!name) return;
+          const state = detectPlayerState(competitor, event?.status);
+          const scoreValue = parsePlayerScore(competitor) ?? parsePlayerScore(athlete);
+          athletes.push({
+            id: firstDefined(athlete?.id, competitor?.id, normalizeName(name)),
+            name,
+            normalizedName: normalizeName(name),
+            position: parsePosition(competitor, index),
+            scoreValue,
+            scoreDisplay: formatScore(scoreValue, state === 'NOT_STARTED' ? 'E' : state),
+            thru: parseThru(competitor, event?.status),
+            statusCode: state,
+            eventStatus: parseStatusText(event?.status),
+            rounds: parseRoundScores(competitor),
+            raw: competitor
+          });
+        });
+      }
+
+      return athletes;
+    }
+
+    function madeCut(player) {
+      // Teams score only made-cut players normally.
+      // We treat ACTIVE and FINAL players with numeric scores as valid made-cut players.
+      return (player.statusCode === 'ACTIVE' || player.statusCode === 'FINAL') && typeof player.scoreValue === 'number';
+    }
+
+    function sortPlayersForLeaderboard(players) {
+      return [...players].sort((a, b) => {
+        const pa = parseLeaderboardPosition(a.position);
+        const pb = parseLeaderboardPosition(b.position);
+        if (pa !== pb) return pa - pb;
+        if ((a.scoreValue ?? 999) !== (b.scoreValue ?? 999)) return (a.scoreValue ?? 999) - (b.scoreValue ?? 999);
+        return a.name.localeCompare(b.name);
+      });
+    }
+
+    function parseLeaderboardPosition(pos) {
+      const numeric = Number(String(pos).replace(/[^\d]/g, ''));
+      return Number.isFinite(numeric) && numeric > 0 ? numeric : 999;
+    }
+
+    function buildFieldData(players) {
+      const byName = new Map();
+      players.forEach((player) => {
+        byName.set(player.normalizedName, player);
+      });
+
+      // Ensure every fantasy golfer still appears even before scoring starts.
+      teamOrder.forEach((teamName) => {
+        fantasyTeams[teamName].forEach((rosterName) => {
+          const key = normalizeName(rosterName);
+          if (!byName.has(key)) {
+            byName.set(key, {
+              id: key,
+              name: rosterName,
+              normalizedName: key,
+              position: '—',
+              scoreValue: 0,
+              scoreDisplay: 'E',
+              thru: 'Yet to Tee Off',
+              statusCode: 'NOT_STARTED',
+              eventStatus: 'Not Started',
+              rounds: { 1: '—', 2: '—', 3: '—', 4: '—' },
+              raw: null,
+              synthetic: true
+            });
+          }
+        });
+      });
+
+      return sortPlayersForLeaderboard([...byName.values()]);
+    }
+
+    function calculateTeamStandings(fieldPlayers) {
+      const validMadeCutScores = fieldPlayers.filter(madeCut);
+      const worstMadeCutScore = validMadeCutScores.length
+        ? Math.max(...validMadeCutScores.map((player) => player.scoreValue))
+        : 0;
+
+      const standings = teamOrder.map((teamName) => {
+        const roster = fantasyTeams[teamName].map((rosterName) => {
+          const key = normalizeName(rosterName);
+          const match = fieldPlayers.find((player) => player.normalizedName === key);
+          return {
+            ...match,
+            rosterName,
+            isRosterPlaceholder: !match
+          };
+        });
+
+        const countingEligible = roster.filter(madeCut).sort((a, b) => a.scoreValue - b.scoreValue);
+        const counting = countingEligible.slice(0, 4).map((player, idx) => ({
+          ...player,
+          calculationRole: 'counting',
+          countingIndex: idx + 1
+        }));
+        const bench = roster.filter((player) => !counting.some((pick) => pick.normalizedName === player.normalizedName));
+
+        const fallbackCount = Math.max(0, 4 - counting.length);
+        const fallbackEntries = Array.from({ length: fallbackCount }, (_, index) => ({
+          id: `${teamName}-fallback-${index + 1}`,
+          name: 'Field Fallback',
+          rosterName: 'Field Fallback',
+          normalizedName: `${teamName}-fallback-${index + 1}`,
+          position: '—',
+          scoreValue: worstMadeCutScore,
+          scoreDisplay: formatScore(worstMadeCutScore, 'E'),
+          thru: validMadeCutScores.length ? 'Worst made-cut score in field' : 'No made-cut golfers yet',
+          statusCode: validMadeCutScores.length ? 'FALLBACK' : 'NOT_STARTED',
+          eventStatus: validMadeCutScores.length ? 'Field fallback' : 'Pre-cut placeholder',
+          rounds: { 1: '—', 2: '—', 3: '—', 4: '—' },
+          calculationRole: 'fallback',
+          countingIndex: counting.length + index + 1,
+          synthetic: true
+        }));
+
+        const countingSet = new Set(counting.map((player) => player.normalizedName));
+        const rosterDecorated = roster.map((player) => ({
+          ...player,
+          calculationRole: countingSet.has(player.normalizedName) ? 'counting' : 'bench'
+        }));
+
+        const countingWithFallback = [...counting, ...fallbackEntries];
+        const total = countingWithFallback.reduce((sum, player) => sum + (player.scoreValue ?? 0), 0);
+        const nextBestBench = roster
+          .filter((player) => !countingSet.has(player.normalizedName) && typeof player.scoreValue === 'number')
+          .sort((a, b) => a.scoreValue - b.scoreValue)[0]?.scoreValue;
+
+        const statusCounts = {
+          active: roster.filter((p) => p.statusCode === 'ACTIVE').length,
+          finished: roster.filter((p) => p.statusCode === 'FINAL').length,
+          cut: roster.filter((p) => p.statusCode === 'CUT').length,
+          notStarted: roster.filter((p) => p.statusCode === 'NOT_STARTED').length,
+          wd: roster.filter((p) => p.statusCode === 'WD').length,
+          dns: roster.filter((p) => p.statusCode === 'DNS').length
+        };
+
+        return {
+          teamName,
+          roster: rosterDecorated,
+          counting: countingWithFallback,
+          bench,
+          fallbackCount,
+          total,
+          nextBestBench: nextBestBench ?? 999,
+          statusCounts,
+          worstMadeCutScore
+        };
+      });
+
+      standings.sort((a, b) => {
+        if (a.total !== b.total) return a.total - b.total;
+        if (a.nextBestBench !== b.nextBestBench) return a.nextBestBench - b.nextBestBench;
+        return a.teamName.localeCompare(b.teamName);
+      });
+
+      standings.forEach((team, index) => { team.rank = index + 1; });
+      return { standings, worstMadeCutScore };
+    }
+
+    function rankEmoji(rank) {
+      if (rank === 1) return '🥇';
+      if (rank === 2) return '🥈';
+      if (rank === 3) return '🥉';
+      if (rank <= 5) return '⛳';
+      if (rank <= 7) return '😬';
+      return '🔥';
+    }
+
+    function hotGolfer(player) {
+      return typeof player.scoreValue === 'number' && player.scoreValue <= -3 && player.statusCode === 'ACTIVE';
+    }
+
+    function movementLabel(teamName, newRank) {
+      const oldRank = lastPositions[teamName];
+      if (!oldRank) return { text: 'New snapshot', cls: '' };
+      if (newRank < oldRank) return { text: `▲ Up ${oldRank - newRank}`, cls: 'up' };
+      if (newRank > oldRank) return { text: `▼ Down ${newRank - oldRank}`, cls: 'down' };
+      return { text: '• Holding', cls: '' };
+    }
+
+    function renderMeta(snapshot) {
+      const leader = snapshot.standings[0];
+      const runnerUp = snapshot.standings[1];
+      const totalPlayers = snapshot.fieldPlayers.length;
+      const madeCutCount = snapshot.fieldPlayers.filter(madeCut).length;
+      const activeCount = snapshot.fieldPlayers.filter((p) => p.statusCode === 'ACTIVE').length;
+      const preStart = totalPlayers > 0 && snapshot.fieldPlayers.every((p) => p.statusCode === 'NOT_STARTED' || p.synthetic);
+
+      refs.topMetaChips.innerHTML = [
+        `<span class="chip">🏌️ ${totalPlayers} golfers shown</span>`,
+        `<span class="chip">✂️ ${madeCutCount} made-cut golfers</span>`,
+        `<span class="chip">📍 ${activeCount} live on course</span>`
+      ].join('');
+
+      refs.teamChips.innerHTML = `
+        <span class="chip">👥 ${snapshot.standings.length} fantasy teams</span>
+        <span class="chip">🟡 Fallback ${formatScore(snapshot.worstMadeCutScore, 'E')}</span>
+      `;
+
+      refs.fieldChips.innerHTML = preStart
+        ? `<span class="chip">🌅 Pre-tournament board is live</span>`
+        : `<span class="chip">📊 Sorted by tournament position / score</span>`;
+
+      refs.spotlightGrid.innerHTML = `
+        <div class="spotlight-card">
+          <h3>Clubhouse leader</h3>
+          <div class="spotlight-value">${leader ? escapeHtml(leader.teamName) : '—'}</div>
+          <div class="spotlight-sub">${leader ? `${formatScore(leader.total, 'E')} total` : 'Waiting for teams'}</div>
+        </div>
+        <div class="spotlight-card">
+          <h3>Closest battle</h3>
+          <div class="spotlight-value">${leader && runnerUp ? formatScore(Math.abs(runnerUp.total - leader.total), 'E') : '—'}</div>
+          <div class="spotlight-sub">${leader && runnerUp ? `${escapeHtml(leader.teamName)} vs ${escapeHtml(runnerUp.teamName)}` : 'Leaderboard warming up'}</div>
+        </div>
+        <div class="spotlight-card">
+          <h3>Field fallback</h3>
+          <div class="spotlight-value">${formatScore(snapshot.worstMadeCutScore, 'E')}</div>
+          <div class="spotlight-sub">Worst made-cut score in the tournament field</div>
+        </div>
+      `;
+
+      refs.battleCallout.textContent = preStart
+        ? 'No official live scoring yet — rosters are loaded and everyone is sitting at even par / yet to tee off until the board starts moving.'
+        : leader && runnerUp
+          ? `${leader.teamName} has the jacket for now, but ${runnerUp.teamName} is only ${formatScore(Math.abs(runnerUp.total - leader.total), 'E')} back. Nobody is safe on Augusta weekend.`
+          : 'Leaderboard is live. Time to sweat every birdie and every three-putt.';
+    }
+
+    function renderTeamStandings(snapshot) {
+      refs.teamList.innerHTML = snapshot.standings.map((team) => {
+        const open = expandedTeams.has(team.teamName) ? 'open' : '';
+        const movement = movementLabel(team.teamName, team.rank);
+        const countingChips = team.counting.map((player) => {
+          const cls = player.calculationRole === 'fallback' ? 'fallback' : 'counting';
+          const label = player.calculationRole === 'fallback'
+            ? `🟡 ${formatScore(player.scoreValue, 'E')}`
+            : `${escapeHtml(player.name.split(' ').slice(-1)[0])} ${formatScore(player.scoreValue, 'E')}`;
+          return `<span class="score-chip ${cls}">${label}</span>`;
+        }).join('');
+
+        const rosterCards = [
+          ...team.roster.map((player) => {
+            const role = player.calculationRole || 'bench';
+            const hot = hotGolfer(player) ? '<span class="tag">🔥 Hot golfer</span>' : '';
+            const extraTag = player.statusCode === 'CUT' ? '<span class="tag cut">CUT</span>' : '';
+            return `
+              <div class="player-card ${role === 'counting' ? 'counting' : ''}">
+                <div class="row">
+                  <div>
+                    <div class="player-name">${escapeHtml(player.rosterName || player.name)}</div>
+                    <div class="muted small">${escapeHtml(player.thru || 'Yet to Tee Off')}</div>
+                  </div>
+                  <div class="team-score-value ${scoreClass(player.scoreValue)}">${escapeHtml(formatScore(player.scoreValue, player.statusCode === 'CUT' ? 'CUT' : player.statusCode === 'WD' ? 'WD' : player.statusCode === 'DNS' ? 'DNS' : 'E'))}</div>
+                </div>
+                <div class="player-role">
+                  <span class="tag ${role === 'counting' ? 'counting' : ''}">${role === 'counting' ? 'Counting' : 'Bench'}</span>
+                  ${extraTag}
+                  ${hot}
+                  <span class="tag">${escapeHtml(player.statusCode === 'FINAL' ? 'Finished' : player.statusCode === 'ACTIVE' ? 'Live' : player.statusCode === 'NOT_STARTED' ? 'Yet to Tee Off' : player.statusCode)}</span>
+                </div>
+              </div>
+            `;
+          }),
+          ...Array.from({ length: team.fallbackCount }, (_, idx) => `
+            <div class="player-card fallback">
+              <div class="row">
+                <div>
+                  <div class="player-name">Field Fallback</div>
+                  <div class="muted small">Worst made-cut score in the field</div>
+                </div>
+                <div class="team-score-value ${scoreClass(team.worstMadeCutScore)}">${formatScore(team.worstMadeCutScore, 'E')}</div>
+              </div>
+              <div class="player-role">
+                <span class="tag fallback">Fallback ${idx + 1}</span>
+                <span class="tag">Tournament-wide replacement score</span>
+              </div>
+            </div>
+          `)
+        ].join('');
+
+        return `
+          <details class="team-card" data-team="${escapeHtml(team.teamName)}" ${open}>
+            <summary class="team-summary">
+              <div class="team-meta">
+                <div class="rank-badge">${rankEmoji(team.rank)}</div>
+                <div>
+                  <div class="team-name">${escapeHtml(team.teamName)}</div>
+                  <div class="team-sub">
+                    <span>${team.statusCounts.active} active</span>
+                    <span>${team.statusCounts.finished} finished</span>
+                    <span>${team.statusCounts.cut} cut</span>
+                    <span>${team.statusCounts.notStarted} not started</span>
+                  </div>
+                  <div class="movement ${movement.cls}">${movement.text}</div>
+                </div>
+              </div>
+              <div class="team-score">
+                <div class="team-score-label">Team total</div>
+                <div class="team-score-value ${scoreClass(team.total)}">${formatScore(team.total, 'E')}</div>
+              </div>
+              <div class="counting-wrap">${countingChips}</div>
+              <div class="team-chevron">⌄</div>
+            </summary>
+            <div class="team-detail">
+              <div class="roster-grid">${rosterCards}</div>
+            </div>
+          </details>
+        `;
+      }).join('');
+
+      document.querySelectorAll('.team-card').forEach((el) => {
+        el.addEventListener('toggle', () => {
+          const team = el.getAttribute('data-team');
+          if (el.open) expandedTeams.add(team);
+          else expandedTeams.delete(team);
+        });
+      });
+    }
+
+    function renderFieldTable(snapshot) {
+      refs.fieldTableBody.innerHTML = snapshot.fieldPlayers.map((player) => {
+        const team = teamByPlayer.get(player.normalizedName);
+        const hot = hotGolfer(player) ? '🔥' : '';
+        const statusText = player.statusCode === 'NOT_STARTED'
+          ? (player.thru || 'Yet to Tee Off')
+          : player.statusCode === 'FINAL'
+            ? 'Finished'
+            : player.statusCode === 'ACTIVE'
+              ? (player.thru || 'Live')
+              : player.statusCode;
+
+        return `
+          <tr>
+            <td><span class="pos-badge">${escapeHtml(player.position)} ${hot}</span></td>
+            <td><strong>${escapeHtml(player.name)}</strong></td>
+            <td class="${scoreClass(player.scoreValue)}"><strong>${escapeHtml(formatScore(player.scoreValue, player.statusCode === 'CUT' ? 'CUT' : player.statusCode === 'WD' ? 'WD' : player.statusCode === 'DNS' ? 'DNS' : 'E'))}</strong></td>
+            <td>${escapeHtml(statusText)}</td>
+            <td>${escapeHtml(player.rounds?.[1] ?? '—')}</td>
+            <td>${escapeHtml(player.rounds?.[2] ?? '—')}</td>
+            <td>${escapeHtml(player.rounds?.[3] ?? '—')}</td>
+            <td>${escapeHtml(player.rounds?.[4] ?? '—')}</td>
+            <td>${team ? `<span class="team-label">🏌️ ${escapeHtml(team)}</span>` : '<span class="muted">—</span>'}</td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function buildSnapshot(scoreboard) {
+      const events = getEventCandidates(scoreboard);
+      const event = pickMastersEvent(events);
+      const parsedPlayers = event ? extractAthletesFromEvent(event) : [];
+      const fieldPlayers = buildFieldData(parsedPlayers);
+      const { standings, worstMadeCutScore } = calculateTeamStandings(fieldPlayers);
+      return {
+        event,
+        fieldPlayers,
+        standings,
+        worstMadeCutScore,
+        fetchedAt: new Date()
+      };
+    }
+
+    function updateStatus(success, message) {
+      refs.liveStatus.textContent = message;
+      refs.livePulse.classList.toggle('offline', !success);
+      refs.lastUpdated.textContent = new Date().toLocaleString([], {
+        month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit'
+      });
+    }
+
+    function persistRanks(snapshot) {
+      lastPositions = {};
+      snapshot.standings.forEach((team) => { lastPositions[team.teamName] = team.rank; });
+      lastSnapshot = snapshot;
+    }
+
+    function render(snapshot) {
+      renderMeta(snapshot);
+      renderTeamStandings(snapshot);
+      renderFieldTable(snapshot);
+    }
+
+    async function refresh() {
+      try {
+        const scoreboard = await fetchScoreboard();
+        const snapshot = buildSnapshot(scoreboard);
+        render(snapshot);
+
+        const eventName = snapshot.event?.name || snapshot.event?.shortName || 'Masters data loaded';
+        updateStatus(true, `Live from ESPN • ${eventName}`);
+        persistRanks(snapshot);
+      } catch (error) {
+        console.error(error);
+
+        // Graceful fallback: render a polished pre-tournament style board using the fantasy rosters only.
+        const snapshot = buildSnapshot({ events: [] });
+        render(snapshot);
+        updateStatus(false, `Using roster view • ${error.message || 'API unavailable'}`);
+      }
+    }
+
+    refresh();
+    setInterval(refresh, REFRESH_INTERVAL_MS);
+  </script>
+</body>
+</html>
